@@ -75,6 +75,8 @@ input[type=color]{height:40px;padding:4px}
 .sg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px;margin:6px 0}
 .sg button{flex:1;border:0;background:none;color:var(--tx);padding:7px 2px;border-radius:10px;font-size:12px;font-weight:600}
 .sg .on{background:var(--brand);color:#fff;font-weight:800}
+.ch{display:block;width:100%;text-align:left;margin-top:8px}
+.ch small{display:block;font-weight:500;margin-top:2px}
 </style></head><body>
 <header>
 <div class="sq"><svg viewBox="0 0 42 42" width="22" height="22"><g fill="none" stroke-width="7"><circle r="15.9" cx="21" cy="21" stroke="#173b2f" stroke-dasharray="45 55" stroke-dashoffset="25"/><circle r="15.9" cx="21" cy="21" stroke="#c26a05" stroke-dasharray="30 70" stroke-dashoffset="-20"/><circle r="15.9" cx="21" cy="21" stroke="#1f9d55" stroke-dasharray="20 80" stroke-dashoffset="-50"/></g></svg></div>
@@ -96,7 +98,12 @@ const DEF=[["Hrana","🍔","#34c759"],["Restorani i kafići","☕","#ff9500"],["
 const MN=["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
 const T={expense:'Potrošnja',income:'Prihod',sin:'U štednju',sout:'Iz štednje'};
 const M={card:'💳 Kartica',cash:'💵 Keš'};
-const ML={card:'Kartica',cash:'Keš'};
+const ML={card:'Kartica',cash:'Keš',sav:'Štednja'};
+const MC={card:'cb',cash:'cg',sav:'cp'};
+const TN={...T,xfer:'Transfer'};
+const ACC={card:'💳 Kartica',cash:'💵 Keš',sav:'🏦 Štednja'};
+const FIXN='Zaboravio da upišem';
+const num=v=>parseFloat(String(v).replace(',','.'));
 const PAL=['#0a84ff','#ff9f0a','#30b455','#af52de','#ff453a','#5ac8fa'];
 let S;try{S=JSON.parse(localStorage.getItem('pot'))}catch(e){}
 S=S||{cats:DEF,tx:[]};
@@ -118,8 +125,9 @@ const p2=n=>String(n).padStart(2,'0');
 const hm=ts=>{const d=new Date(ts);return p2(d.getHours())+':'+p2(d.getMinutes())};
 const dt=ts=>{const d=new Date(ts);return d.getDate()+'. '+MN[d.getMonth()].slice(0,3)+' • '+hm(ts)};
 const loc=ts=>new Date(ts-new Date(ts).getTimezoneOffset()*6e4).toISOString().slice(0,16);
-const bal=m=>S.tx.reduce((a,t)=>t.method!=m?a:a+(t.type=='income'||t.type=='sout'?t.amount:-t.amount),0);
-const sav=()=>S.tx.reduce((a,t)=>a+(t.type=='sin'?t.amount:t.type=='sout'?-t.amount:0),0);
+const bal=m=>S.tx.reduce((a,t)=>{if(t.type=='xfer')return a+(t.to==m?t.amount:0)-(t.method==m?t.amount:0);return t.method!=m?a:a+(t.type=='income'||t.type=='sout'?t.amount:-t.amount)},0);
+const sav=()=>S.tx.reduce((a,t)=>a+(t.type=='sin'?t.amount:t.type=='sout'?-t.amount:0),0)+bal('sav');
+const cur=a=>a=='sav'?sav():bal(a);
 const msw=()=>`<div class="card ms"><button onclick="shift(-1)">‹</button><b>${MN[mo.getMonth()]} ${mo.getFullYear()}</b><button onclick="shift(1)">›</button></div>`;
 function shift(n){mo=new Date(mo.getFullYear(),mo.getMonth()+n,1);render()}
 function go(t){tab=t;render();scrollTo(0,0)}
@@ -127,28 +135,34 @@ function render(){$('#v').innerHTML=({home:vHome,list:vList,sav:vSav,cats:vCats}
 const s3=(l,v,c,ic)=>`<div class="tc ${c}"><small>${ic} ${l}</small><b>${nf(v)}</b><small>RSD</small></div>`;
 
 function vHome(){
- const m=S.tx.filter(t=>inMo(t)),ex=m.filter(t=>t.type=='expense'),sp=sum(ex),inc=sum(m.filter(t=>t.type=='income'));
+ const m=S.tx.filter(t=>inMo(t)&&t.method!='sav'),ex=m.filter(t=>t.type=='expense'),sp=sum(ex),inc=sum(m.filter(t=>t.type=='income'));
+ const svn=sum(m.filter(t=>t.type=='sin'))-sum(m.filter(t=>t.type=='sout')),tot=sp+Math.max(svn,0),bl=inc-sp-svn;
  const g={};ex.forEach(t=>{const k=t.cat&&cat(t.cat)?t.cat:'-';g[k]=(g[k]||0)+t.amount});
- const rows=Object.entries(g).map(([k,v])=>({...(cat(k)||{name:'Bez kategorije',icon:'❔',color:'#8e8e93'}),v})).sort((a,b)=>b.v-a.v);
+ const rows=Object.entries(g).map(([k,v])=>({...(cat(k)||{name:'Bez kategorije',icon:'❔',color:'#8e8e93'}),v}));
+ if(svn>0)rows.push({name:'Prebačeno u štednju',icon:'🏦',color:'#ff9f0a',v:svn});
+ rows.sort((a,b)=>b.v-a.v);
  let cum=0;
- const seg=rows.map(r=>{const p=r.v/sp*100,d=Math.max(p-.6,0);const s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${r.color}" stroke-width="5" stroke-dasharray="${d} ${100-d}" stroke-dashoffset="${25-cum}"/>`;cum+=p;return s}).join('');
- const bars=[5,4,3,2,1,0].map(i=>{const d=new Date(mo.getFullYear(),mo.getMonth()-i,1),x=S.tx.filter(t=>inMo(t,d));return{l:MN[d.getMonth()].slice(0,3),i:sum(x.filter(t=>t.type=='income')),e:sum(x.filter(t=>t.type=='expense'))}});
+ const arcs=rows.map(r=>{const p=r.v/tot*100,d=Math.max(p-.6,0);const s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${r.color}" stroke-width="5" stroke-dasharray="${d} ${100-d}" stroke-dashoffset="${25-cum}"/>`;cum+=p;return s}).join('');
+ const bars=[5,4,3,2,1,0].map(i=>{const d=new Date(mo.getFullYear(),mo.getMonth()-i,1),x=S.tx.filter(t=>inMo(t,d)&&t.method!='sav');return{l:MN[d.getMonth()].slice(0,3),i:sum(x.filter(t=>t.type=='income')),e:sum(x.filter(t=>t.type=='expense'))}});
  const mx=Math.max(1,...bars.flatMap(b=>[b.i,b.e]));
- return `<div class="card"><div class="ct">Trenutno stanje</div><div class="g3">${s3('Kartica',bal('card'),'cb','💳')}${s3('Keš',bal('cash'),'cg','💵')}${s3('Štednja',sav(),'cp','🏦')}</div></div>
+ return `<div class="card"><div class="ct">Trenutno stanje</div><div class="g3">${s3('Kartica',bal('card'),'cb','💳')}${s3('Keš',bal('cash'),'cg','💵')}${s3('Štednja',sav(),'cp','🏦')}</div><div class="g2" style="margin:10px 0 0"><button class="btn" onclick="xferForm()">🔁 Transfer</button><button class="btn" onclick="balForm()">🎯 Uskladi stanje</button></div></div>
  ${msw()}
  <div class="card"><div class="ct">Ovaj mesec</div>
  <div class="bar cg"><span>⬇️ Prihod</span><span>${fmt(inc)}</span></div>
  <div class="bar cr"><span>⬆️ Potrošeno</span><span>${fmt(sp)}</span></div>
- <div class="dk"><span class="dot" style="background:${inc>=sp?'#4cd17f':'#ff6b5e'}"></span>Balans<b>${fmt(inc-sp)}</b></div></div>
- <div class="card"><div class="ct">Potrošnja po kategorijama</div>${sp?`<div class="dn"><svg viewBox="0 0 42 42">${seg}</svg><div><small>Ukupno</small><b>${fmt(sp)}</b></div></div>
- ${rows.map(r=>`<div class="lg"><span class="ic" style="width:28px;height:28px;font-size:14px;background:${r.color}2e">${r.icon}</span><div class="gr" style="font-weight:700">${esc(r.name)}</div><small>${Math.round(r.v/sp*100)}%</small><b>${fmt(r.v)}</b></div>`).join('')}`:'<p class="emp">Nema potrošnje za ovaj mesec.</p>'}</div>
+ ${svn?`<div class="bar co"><span>🏦 U štednju</span><span>${fmt(svn)}</span></div>`:''}
+ <div class="dk"><span class="dot" style="background:${bl>=0?'#4cd17f':'#ff6b5e'}"></span>Balans<b>${fmt(bl)}</b></div></div>
+ <div class="card"><div class="ct">Potrošnja i štednja</div>${tot>0?`<div class="dn"><svg viewBox="0 0 42 42">${arcs}</svg><div><small>Potrošeno</small><b>${fmt(sp)}</b></div></div>
+ ${rows.map(r=>`<div class="lg"><span class="ic" style="width:28px;height:28px;font-size:14px;background:${r.color}2e">${r.icon}</span><div class="gr" style="font-weight:700">${esc(r.name)}</div><small>${Math.round(r.v/tot*100)}%</small><b>${fmt(r.v)}</b></div>`).join('')}`:'<p class="emp">Nema potrošnje ni štednje za ovaj mesec.</p>'}</div>
  <div class="card"><div class="ct">Poslednjih 6 meseci</div><small style="display:block;margin:-6px 0 10px"><span style="color:var(--g)">■</span> Prihod &nbsp; <span style="color:var(--r)">■</span> Potrošnja</small>
  <div class="bc">${bars.map(b=>`<div class="bg"><div class="bb"><i style="height:${b.i/mx*100}%;background:var(--g)"></i><i style="height:${b.e/mx*100}%;background:var(--r)"></i></div><small>${b.l}</small></div>`).join('')}</div></div>`}
 
 function row(t,full){
+ const nt=t.note?'<br>'+esc(t.note):'',tm=full?dt(t.ts):hm(t.ts);
+ if(t.type=='xfer')return `<div class="it" onclick="xferForm('${t.id}')"><span class="ic" style="background:#2257cf2e">🔁</span><div class="gr"><div>Transfer</div><small><span class="pill ${MC[t.method]}">${ML[t.method]}</span>→ <span class="pill ${MC[t.to]}">${ML[t.to]}</span>${tm}${nt}</small></div><b style="color:var(--b)">${fmt(t.amount)}</b></div>`;
  const c=cat(t.cat),e=t.type=='expense',ic=e?(c?c.icon:'➖'):t.type=='income'?'⬇️':'🔒';
  const co=e?(c?c.color:'#8e8e93'):t.type=='income'?'#30b455':'#ff9f0a',sg=e?'-':t.type=='income'?'+':'',cl=e?'var(--r)':t.type=='income'?'var(--g)':'var(--o)';
- return `<div class="it" onclick="openForm('${t.id}')"><span class="ic" style="background:${co}2e">${ic}</span><div class="gr"><div>${e?esc(c?c.name:'Potrošnja'):T[t.type]}</div><small><span class="pill ${t.method=='card'?'cb':'cg'}">${ML[t.method]}</span>${full?dt(t.ts):hm(t.ts)}${t.note?'<br>'+esc(t.note):''}</small></div><b style="color:${cl}">${sg}${fmt(t.amount)}</b></div>`}
+ return `<div class="it" onclick="openForm('${t.id}')"><span class="ic" style="background:${co}2e">${ic}</span><div class="gr"><div>${e?esc(c?c.name:'Potrošnja'):T[t.type]}</div><small><span class="pill ${MC[t.method]}">${ML[t.method]}</span>${tm}${nt}</small></div><b style="color:${cl}">${sg}${fmt(t.amount)}</b></div>`}
 
 function vList(){
  const m=S.tx.filter(t=>inMo(t)).sort((a,b)=>b.ts-a.ts);
@@ -159,7 +173,7 @@ function vList(){
  return h}
 
 function vSav(){
- const a=S.tx.filter(t=>t.type=='sin'||t.type=='sout').sort((x,y)=>y.ts-x.ts);
+ const a=S.tx.filter(t=>t.type=='sin'||t.type=='sout'||t.method=='sav').sort((x,y)=>y.ts-x.ts);
  return `<div class="card" style="text-align:center"><div class="ct">Na štednji</div><div style="font-size:28px;font-weight:800;color:var(--o)">${nf(sav())}</div><small>RSD</small><div class="g2" style="margin-top:16px"><button class="btn pr" onclick="openForm(0,'sin')">⬇️ Uplati</button><button class="btn" onclick="openForm(0,'sout')">⬆️ Podigni</button></div></div>
  <div class="card"><div class="ct" style="margin:0">Istorija</div>${a.length?a.map(t=>row(t,1)).join(''):'<p class="emp">Još nema uplata.</p>'}</div>`}
 
@@ -185,7 +199,7 @@ function openForm(id,ty){
  open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">${t?'Izmena':'Nova transakcija'}</b><button class="lk" onclick="sv('${id||''}')">Sačuvaj</button></div>
  ${seg('type',T,F.type)}
  <label>Iznos</label><input id="fa" inputmode="decimal" placeholder="0" value="${F.amount}">
- <label id="mh">${MH[F.type]}</label>${seg('method',M,F.method)}
+ <label id="mh">${MH[F.type]}</label>${seg('method',F.method=='sav'?{...M,sav:'🏦 Štednja'}:M,F.method)}
  <div id="fc" style="${F.type=='expense'?'':'display:none'}"><label>Kategorija</label><div class="row"><select id="fk">${opts(F.cat)}</select><button class="btn" style="white-space:nowrap" onclick="quickCat()">+ Nova</button></div></div>
  <label>Napomena</label><input id="fn" placeholder="npr. doručak" value="${esc(F.note)}">
  <label style="text-transform:none;letter-spacing:0;font-size:15px;color:var(--tx)"><input type="checkbox" id="fnow" ${F.now?'checked':''} onchange="$('#fd').style.display=this.checked?'none':''">Upravo sad</label>
@@ -202,13 +216,43 @@ function catForm(){open_(`<div class="row"><button class="lk" onclick="cl()">Otk
 function addCat(){const n=$('#cn').value.trim();if(!n)return;S.cats.push({id:'c'+Date.now(),name:n,icon:$('#ci').value||'🏷️',color:$('#cc').value});save();cl();render()}
 function delCat(id){const c=cat(id);if(confirm(`Obrisati kategoriju "${c.name}"? Njene transakcije ostaju kao "Bez kategorije".`)){S.cats=S.cats.filter(x=>x.id!=id);S.tx.forEach(t=>{if(t.cat==id)t.cat=''});save();render()}}
 
+function fixCat(){let c=S.cats.find(x=>x.id=='cfix');if(!c){c={id:'cfix',name:FIXN,icon:'❓',color:'#d946a8'};S.cats.push(c)}return c.id}
+function balForm(){open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">Trenutno stanje</b><button class="lk" onclick="saveBal()">Sačuvaj</button></div>
+ <small style="display:block;margin:10px 4px 0">Upiši koliko stvarno imaš. Razlika se upisuje kao potrošnja u kategoriju „${FIXN}“ (ili kao prihod ako imaš više nego što piše). Ostavi prazno ono što ne želiš da menjaš.</small>
+ ${Object.entries(ACC).map(([k,l])=>`<label>${l} <span style="text-transform:none;letter-spacing:0;font-weight:600">(u aplikaciji: ${fmt(cur(k))})</span></label><input id="b_${k}" inputmode="decimal" placeholder="${nf(cur(k))}" oninput="balHint('${k}')"><small id="h_${k}" style="display:block;margin:4px 4px 0"></small>`).join('')}`)}
+function balHint(k){const v=num($('#b_'+k).value),h=$('#h_'+k);if(isNaN(v)){h.textContent='';return}const d=Math.round((v-cur(k))*100)/100;h.textContent=!d?'Isto kao u aplikaciji':(d<0?'Biće upisano kao potrošnja: ':'Biće upisano kao prihod: ')+fmt(Math.abs(d))}
+function saveBal(){
+ let n=0;const now=Date.now();
+ for(const k of Object.keys(ACC)){const v=num($('#b_'+k).value);if(isNaN(v)||v<0)continue;const d=Math.round((v-cur(k))*100)/100;if(!d)continue;
+  const e={id:'t'+now+k,method:k,amount:Math.abs(d),ts:now,note:'Korekcija stanja'};
+  Object.assign(e,d<0?{type:'expense',cat:fixCat()}:{type:'income',cat:''});
+  S.tx.push(e);n++}
+ if(!n)return alert('Nema razlike za upis.');
+ save();cl();render()}
+const tb=()=>`<label style="text-transform:none;letter-spacing:0;font-size:14px;color:var(--tx)"><input type="checkbox" id="fnow" ${F.now?'checked':''} onchange="$('#fd').style.display=this.checked?'none':''">Upravo sad</label><input type="datetime-local" id="fd" value="${loc(F.ts)}" style="${F.now?'display:none':''}">`;
+const gts=()=>$('#fnow').checked?Date.now():(new Date($('#fd').value).getTime()||Date.now());
+function xferForm(id){
+ const t=id?S.tx.find(x=>x.id==id):null;
+ F=t?{...t,now:false}:{method:'card',to:'cash',ts:Date.now(),now:true,note:'',amount:''};
+ open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">${t?'Izmena transfera':'Transfer'}</b><button class="lk" onclick="saveX('${id||''}')">Sačuvaj</button></div>
+ <label>Smer</label>${seg('dir',{card:'💳 Kartica → 💵 Keš',cash:'💵 Keš → 💳 Kartica'},F.method,'pickDir')}
+ <label>Iznos</label><input id="fa" inputmode="decimal" placeholder="0" value="${F.amount}">
+ <label>Napomena</label><input id="fn" placeholder="npr. podigao sa bankomata" value="${esc(F.note)}">
+ <label>Vreme</label>${tb()}
+ ${t?`<button class="btn dl" onclick="del('${id}')">Obriši transfer</button>`:''}`)}
+function pickDir(n,v){F.method=v;F.to=v=='card'?'cash':'card';document.querySelectorAll('#s_dir button').forEach(b=>b.classList.toggle('on',b.dataset.v==v))}
+function saveX(id){const a=num($('#fa').value);if(!(a>0))return alert('Unesi iznos');
+ const o={type:'xfer',amount:a,method:F.method,to:F.to,cat:'',note:$('#fn').value.trim(),ts:gts()};
+ if(id)Object.assign(S.tx.find(x=>x.id==id),o);else S.tx.push({id:'t'+Date.now(),...o});
+ save();cl();render()}
+
 async function share(txt,name,type){
  const f=new File([(type=='text/csv'?'\ufeff':'')+txt],name,{type});
  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name=='AbortError')return}
  const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;a.click()}
 function exp(){
  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
- const r=[['Datum','Mesec','Tip','Iznos','Nacin','Kategorija','Napomena']].concat([...S.tx].sort((a,b)=>a.ts-b.ts).map(t=>[loc(t.ts).replace('T',' '),loc(t.ts).slice(0,7),T[t.type],t.amount.toFixed(2),ML[t.method],(cat(t.cat)||{}).name||'',t.note]));
+ const r=[['Datum','Mesec','Tip','Iznos','Nacin','Prema','Kategorija','Napomena']].concat([...S.tx].sort((a,b)=>a.ts-b.ts).map(t=>[loc(t.ts).replace('T',' '),loc(t.ts).slice(0,7),TN[t.type],t.amount.toFixed(2),ML[t.method],t.to?ML[t.to]:'',(cat(t.cat)||{}).name||'',t.note]));
  share(r.map(x=>x.map(q).join(',')).join('\n'),'potrosnja.csv','text/csv')}
 function imp(i){const f=i.files[0];if(!f)return;f.text().then(x=>{try{const d=JSON.parse(x.replace(/^\ufeff/,''));if(!d.cats||!d.tx)throw 0;if(confirm('Zameniti sve trenutne podatke podacima iz fajla?')){S=d;save();cl();render()}}catch(e){alert('Neispravan fajl')}i.value=''})}
 
