@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="sr" data-t="light"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Potrošnja">
+<meta name="theme-color" content="#f4f2ed">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Potrošnja</title>
+<style>
+:root{color-scheme:light;--bg:#f4f2ed;--card:#fff;--cream:#faf7f0;--tx:#1b2a24;--mut:#5f6f69;--line:#e7e2d6;--brand:#173b2f;--pt:#fff;--b:#2257cf;--o:#c26a05;--p:#6a3dc4;--g:#1f9d55;--r:#d6453a;--nav:rgba(255,255,255,.85);--sh:0 1px 2px rgba(23,59,47,.06),0 8px 24px rgba(23,59,47,.07)}
+:root[data-t=dark]{color-scheme:dark;--bg:#0f1411;--card:#18201b;--cream:#1e2822;--tx:#eef3ef;--mut:#94a69d;--line:#2a352e;--brand:#2f7a5c;--pt:#0f1411;--b:#7aa2ff;--o:#f0a340;--p:#b79bff;--g:#4cd17f;--r:#ff6b5e;--nav:rgba(24,32,27,.88);--sh:0 1px 0 rgba(255,255,255,.04)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.35 -apple-system,"SF Pro Rounded",system-ui,sans-serif;padding:env(safe-area-inset-top) 0 calc(120px + env(safe-area-inset-bottom));font-variant-numeric:tabular-nums}
+header{position:sticky;top:0;z-index:4;display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--bg);border-bottom:1px solid var(--line)}
+header h1{flex:1;margin:0;font-size:18px;font-weight:800}
+.sq{width:38px;height:38px;border-radius:12px;background:var(--card);box-shadow:var(--sh);display:flex;align-items:center;justify-content:center;border:0;color:var(--tx);padding:0}
+#v{padding:0 12px;max-width:600px;margin:0 auto}
+small{color:var(--mut);font-size:11px}
+.card{background:var(--card);border-radius:20px;padding:14px;margin:12px 0;box-shadow:var(--sh)}
+.ct{text-transform:uppercase;letter-spacing:.12em;font-size:11px;font-weight:800;color:var(--mut);margin:0 0 10px}
+.cb{--c:var(--b)}.co{--c:var(--o)}.cp{--c:var(--p)}.cg{--c:var(--g)}.cr{--c:var(--r)}
+.tint{background:color-mix(in srgb,var(--c) 13%,var(--card));border:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+.tc{text-align:center;border-radius:16px;padding:10px 4px 9px;border-top:3px solid var(--c);background:color-mix(in srgb,var(--c) 13%,var(--card));border-left:1px solid color-mix(in srgb,var(--c) 30%,transparent);border-right:1px solid color-mix(in srgb,var(--c) 30%,transparent);border-bottom:1px solid color-mix(in srgb,var(--c) 30%,transparent)}
+.tc b{display:block;font-size:14px;font-weight:800;color:var(--c);margin:5px 0 1px;overflow-wrap:anywhere}
+.bar{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-radius:13px;margin-top:8px;border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 13%,var(--card));color:var(--c);font-weight:800;font-size:14px}
+.dk{display:flex;align-items:center;gap:10px;background:var(--brand);color:#fff;padding:11px 14px;border-radius:14px;margin-top:8px;font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase}
+.dk b{margin-left:auto;letter-spacing:0;font-size:14px}
+.dot{width:10px;height:10px;border-radius:50%}
+.ms{display:flex;justify-content:space-between;align-items:center;padding:2px 6px}
+.ms b{font-size:15px;font-weight:800}
+.ms button{border:0;background:none;color:var(--brand);font-size:26px;padding:0 12px;line-height:1}
+:root[data-t=dark] .ms button{color:var(--tx)}
+.it{display:flex;align-items:center;gap:10px;background:var(--cream);border:1px solid var(--line);border-radius:14px;padding:9px 12px;margin-top:8px}
+.ic{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex:none}
+.gr{flex:1;min-width:0}
+.gr>div{font-weight:700}
+.it b{white-space:nowrap;font-weight:800}
+.pill{display:inline-block;padding:1px 7px;border-radius:99px;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:var(--c);color:var(--pt);margin-right:4px}
+.dn{position:relative;width:170px;margin:0 auto 14px}
+.dn svg{width:100%;display:block}
+.dn>div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 42px}
+.dn b{font-size:12px;font-weight:800}
+.lg{display:flex;align-items:center;gap:8px;padding:4px 0}
+.bc{display:flex;gap:8px;height:110px}
+.bg{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bb{flex:1;display:flex;align-items:flex-end;gap:3px;width:100%}
+.bb i{flex:1;border-radius:5px 5px 0 0;min-height:2px}
+.emp{text-align:center;color:var(--mut);padding:20px 0}
+.btn{border:1px solid var(--line);background:var(--card);color:var(--tx);font-size:14px;padding:10px;border-radius:13px;font-weight:700;box-shadow:var(--sh)}
+.btn.pr{background:var(--brand);color:#fff;border-color:transparent}
+.btn.dl{color:var(--r);width:100%;margin-top:20px}
+.lk{border:0;background:none;color:var(--brand);font-size:14px;padding:6px;font-weight:700}
+:root[data-t=dark] .lk{color:var(--g)}
+.row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+nav{position:fixed;left:12px;right:12px;bottom:calc(8px + env(safe-area-inset-bottom));display:flex;background:var(--nav);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid var(--line);border-radius:24px;padding:3px;z-index:5;box-shadow:0 8px 28px rgba(0,0,0,.15);max-width:568px;margin:0 auto}
+nav button{flex:1;border:0;background:none;color:var(--mut);padding:5px 0 3px;font-size:10px;font-weight:700;border-radius:20px}
+nav button span{display:block;font-size:17px}
+nav .on{color:var(--tx);background:color-mix(in srgb,var(--brand) 16%,transparent)}
+#fab{position:fixed;right:calc(50% - 284px);bottom:calc(68px + env(safe-area-inset-bottom));width:46px;height:46px;border-radius:50%;border:0;background:var(--brand);color:#fff;font-size:26px;box-shadow:0 6px 18px rgba(0,0,0,.28);z-index:6}
+@media(max-width:600px){#fab{right:14px}}
+#md{position:fixed;inset:0;background:#0007;display:none;align-items:flex-end;z-index:10}
+#md.on{display:flex}
+.sh{background:var(--bg);width:100%;max-width:600px;margin:0 auto;max-height:92%;overflow:auto;border-radius:20px 20px 0 0;padding:14px 14px calc(20px + env(safe-area-inset-bottom))}
+.sh label{display:block;text-transform:uppercase;letter-spacing:.12em;color:var(--mut);font-size:11px;font-weight:800;margin:12px 4px 5px}
+input,select{width:100%;background:var(--card);color:var(--tx);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:16px}
+input[type=checkbox]{width:auto;margin-right:8px}
+input[type=color]{height:40px;padding:4px}
+#fa{font-size:22px;font-weight:800}
+.sg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px;margin:6px 0}
+.sg button{flex:1;border:0;background:none;color:var(--tx);padding:7px 2px;border-radius:10px;font-size:12px;font-weight:600}
+.sg .on{background:var(--brand);color:#fff;font-weight:800}
+</style></head><body>
+<header>
+<div class="sq"><svg viewBox="0 0 42 42" width="22" height="22"><g fill="none" stroke-width="7"><circle r="15.9" cx="21" cy="21" stroke="#173b2f" stroke-dasharray="45 55" stroke-dashoffset="25"/><circle r="15.9" cx="21" cy="21" stroke="#c26a05" stroke-dasharray="30 70" stroke-dashoffset="-20"/><circle r="15.9" cx="21" cy="21" stroke="#1f9d55" stroke-dasharray="20 80" stroke-dashoffset="-50"/></g></svg></div>
+<h1>Potrošnja</h1>
+<button class="sq" onclick="menu()" aria-label="Meni"><svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+</header>
+<div id="v"></div>
+<button id="fab" onclick="openForm()">+</button>
+<nav>
+<button data-t="home" onclick="go('home')"><span>📊</span>Pregled</button>
+<button data-t="list" onclick="go('list')"><span>🧾</span>Transakcije</button>
+<button data-t="sav" onclick="go('sav')"><span>🏦</span>Štednja</button>
+<button data-t="cats" onclick="go('cats')"><span>🗂️</span>Kategorije</button>
+</nav>
+<div id="md" onclick="if(event.target==this)cl()"></div>
+<input type="file" id="imp" accept=".json" hidden onchange="imp(this)">
+<script>
+const DEF=[["Hrana","🍔","#34c759"],["Restorani i kafići","☕","#ff9500"],["Elektronika","💻","#5856d6"],["Gorivo","⛽","#ff3b30"],["Auto popravke","🔧","#8e8e93"],["Računi","🧾","#007aff"],["Zabava","🎬","#af52de"],["Zdravlje","💊","#ff2d55"],["Odeća","👕","#5ac8fa"],["Putovanja","✈️","#00c7be"],["Ostalo","📦","#a2845e"]].map((c,i)=>({id:'c'+i,name:c[0],icon:c[1],color:c[2]}));
+const MN=["Januar","Februar","Mart","April","Maj","Jun","Jul","Avgust","Septembar","Oktobar","Novembar","Decembar"];
+const T={expense:'Potrošnja',income:'Prihod',sin:'U štednju',sout:'Iz štednje'};
+const M={card:'💳 Kartica',cash:'💵 Keš'};
+const ML={card:'Kartica',cash:'Keš'};
+const PAL=['#0a84ff','#ff9f0a','#30b455','#af52de','#ff453a','#5ac8fa'];
+let S;try{S=JSON.parse(localStorage.getItem('pot'))}catch(e){}
+S=S||{cats:DEF,tx:[]};
+const save=()=>localStorage.setItem('pot',JSON.stringify(S));
+const $=s=>document.querySelector(s);
+const nf=n=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:2}).format(n);
+const fmt=n=>nf(n)+' RSD';
+let tab='home',mo=new Date(),F;
+mo=new Date(mo.getFullYear(),mo.getMonth(),1);
+const mq=matchMedia('(prefers-color-scheme: dark)');
+function applyTheme(){const t=localStorage.getItem('pot_theme')||'auto',d=t=='dark'||(t=='auto'&&mq.matches);document.documentElement.dataset.t=d?'dark':'light';$('meta[name=theme-color]').content=d?'#0f1411':'#f4f2ed'}
+mq.addEventListener('change',applyTheme);applyTheme();
+const ym=d=>d.getFullYear()*12+d.getMonth();
+const inMo=(t,d=mo)=>ym(new Date(t.ts))==ym(d);
+const sum=a=>a.reduce((s,t)=>s+t.amount,0);
+const cat=id=>S.cats.find(c=>c.id==id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const p2=n=>String(n).padStart(2,'0');
+const hm=ts=>{const d=new Date(ts);return p2(d.getHours())+':'+p2(d.getMinutes())};
+const dt=ts=>{const d=new Date(ts);return d.getDate()+'. '+MN[d.getMonth()].slice(0,3)+' • '+hm(ts)};
+const loc=ts=>new Date(ts-new Date(ts).getTimezoneOffset()*6e4).toISOString().slice(0,16);
+const bal=m=>S.tx.reduce((a,t)=>t.method!=m?a:a+(t.type=='income'||t.type=='sout'?t.amount:-t.amount),0);
+const sav=()=>S.tx.reduce((a,t)=>a+(t.type=='sin'?t.amount:t.type=='sout'?-t.amount:0),0);
+const msw=()=>`<div class="card ms"><button onclick="shift(-1)">‹</button><b>${MN[mo.getMonth()]} ${mo.getFullYear()}</b><button onclick="shift(1)">›</button></div>`;
+function shift(n){mo=new Date(mo.getFullYear(),mo.getMonth()+n,1);render()}
+function go(t){tab=t;render();scrollTo(0,0)}
+function render(){$('#v').innerHTML=({home:vHome,list:vList,sav:vSav,cats:vCats})[tab]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab))}
+const s3=(l,v,c,ic)=>`<div class="tc ${c}"><small>${ic} ${l}</small><b>${nf(v)}</b><small>RSD</small></div>`;
+
+function vHome(){
+ const m=S.tx.filter(t=>inMo(t)),ex=m.filter(t=>t.type=='expense'),sp=sum(ex),inc=sum(m.filter(t=>t.type=='income'));
+ const g={};ex.forEach(t=>{const k=t.cat&&cat(t.cat)?t.cat:'-';g[k]=(g[k]||0)+t.amount});
+ const rows=Object.entries(g).map(([k,v])=>({...(cat(k)||{name:'Bez kategorije',icon:'❔',color:'#8e8e93'}),v})).sort((a,b)=>b.v-a.v);
+ let cum=0;
+ const seg=rows.map(r=>{const p=r.v/sp*100,d=Math.max(p-.6,0);const s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${r.color}" stroke-width="5" stroke-dasharray="${d} ${100-d}" stroke-dashoffset="${25-cum}"/>`;cum+=p;return s}).join('');
+ const bars=[5,4,3,2,1,0].map(i=>{const d=new Date(mo.getFullYear(),mo.getMonth()-i,1),x=S.tx.filter(t=>inMo(t,d));return{l:MN[d.getMonth()].slice(0,3),i:sum(x.filter(t=>t.type=='income')),e:sum(x.filter(t=>t.type=='expense'))}});
+ const mx=Math.max(1,...bars.flatMap(b=>[b.i,b.e]));
+ return `<div class="card"><div class="ct">Trenutno stanje</div><div class="g3">${s3('Kartica',bal('card'),'cb','💳')}${s3('Keš',bal('cash'),'cg','💵')}${s3('Štednja',sav(),'cp','🏦')}</div></div>
+ ${msw()}
+ <div class="card"><div class="ct">Ovaj mesec</div>
+ <div class="bar cg"><span>⬇️ Prihod</span><span>${fmt(inc)}</span></div>
+ <div class="bar cr"><span>⬆️ Potrošeno</span><span>${fmt(sp)}</span></div>
+ <div class="dk"><span class="dot" style="background:${inc>=sp?'#4cd17f':'#ff6b5e'}"></span>Balans<b>${fmt(inc-sp)}</b></div></div>
+ <div class="card"><div class="ct">Potrošnja po kategorijama</div>${sp?`<div class="dn"><svg viewBox="0 0 42 42">${seg}</svg><div><small>Ukupno</small><b>${fmt(sp)}</b></div></div>
+ ${rows.map(r=>`<div class="lg"><span class="ic" style="width:28px;height:28px;font-size:14px;background:${r.color}2e">${r.icon}</span><div class="gr" style="font-weight:700">${esc(r.name)}</div><small>${Math.round(r.v/sp*100)}%</small><b>${fmt(r.v)}</b></div>`).join('')}`:'<p class="emp">Nema potrošnje za ovaj mesec.</p>'}</div>
+ <div class="card"><div class="ct">Poslednjih 6 meseci</div><small style="display:block;margin:-6px 0 10px"><span style="color:var(--g)">■</span> Prihod &nbsp; <span style="color:var(--r)">■</span> Potrošnja</small>
+ <div class="bc">${bars.map(b=>`<div class="bg"><div class="bb"><i style="height:${b.i/mx*100}%;background:var(--g)"></i><i style="height:${b.e/mx*100}%;background:var(--r)"></i></div><small>${b.l}</small></div>`).join('')}</div></div>`}
+
+function row(t,full){
+ const c=cat(t.cat),e=t.type=='expense',ic=e?(c?c.icon:'➖'):t.type=='income'?'⬇️':'🔒';
+ const co=e?(c?c.color:'#8e8e93'):t.type=='income'?'#30b455':'#ff9f0a',sg=e?'-':t.type=='income'?'+':'',cl=e?'var(--r)':t.type=='income'?'var(--g)':'var(--o)';
+ return `<div class="it" onclick="openForm('${t.id}')"><span class="ic" style="background:${co}2e">${ic}</span><div class="gr"><div>${e?esc(c?c.name:'Potrošnja'):T[t.type]}</div><small><span class="pill ${t.method=='card'?'cb':'cg'}">${ML[t.method]}</span>${full?dt(t.ts):hm(t.ts)}${t.note?'<br>'+esc(t.note):''}</small></div><b style="color:${cl}">${sg}${fmt(t.amount)}</b></div>`}
+
+function vList(){
+ const m=S.tx.filter(t=>inMo(t)).sort((a,b)=>b.ts-a.ts);
+ let h=msw()+`<div class="row" style="justify-content:flex-end"><button class="btn" onclick="exp()">⬆️ Export CSV</button></div>`;
+ if(!m.length)return h+'<div class="card"><p class="emp">Nema transakcija.<br>Dodaj prvu pomoću +</p></div>';
+ const gr={};m.forEach(t=>{(gr[new Date(t.ts).toDateString()]??=[]).push(t)});
+ Object.values(gr).forEach(a=>{const d=new Date(a[0].ts);h+=`<div class="card"><div class="ct" style="margin:0">${d.getDate()}. ${MN[d.getMonth()]} ${d.getFullYear()}</div>${a.map(t=>row(t)).join('')}</div>`});
+ return h}
+
+function vSav(){
+ const a=S.tx.filter(t=>t.type=='sin'||t.type=='sout').sort((x,y)=>y.ts-x.ts);
+ return `<div class="card" style="text-align:center"><div class="ct">Na štednji</div><div style="font-size:28px;font-weight:800;color:var(--o)">${nf(sav())}</div><small>RSD</small><div class="g2" style="margin-top:16px"><button class="btn pr" onclick="openForm(0,'sin')">⬇️ Uplati</button><button class="btn" onclick="openForm(0,'sout')">⬆️ Podigni</button></div></div>
+ <div class="card"><div class="ct" style="margin:0">Istorija</div>${a.length?a.map(t=>row(t,1)).join(''):'<p class="emp">Još nema uplata.</p>'}</div>`}
+
+function vCats(){
+ const n=c=>S.tx.filter(t=>t.cat==c.id).length;
+ return `<div class="card"><div class="ct" style="margin:0">Kategorije</div><small>Tapni na kategoriju da je obrišeš</small>${S.cats.map(c=>`<div class="it" onclick="delCat('${c.id}')"><span class="ic" style="background:${c.color}2e">${c.icon}</span><div class="gr"><div>${esc(c.name)}</div></div><small>${n(c)} stavki</small></div>`).join('')}
+ <button class="btn pr" style="width:100%;margin-top:16px" onclick="catForm()">+ Nova kategorija</button></div>`}
+
+function open_(h){$('#md').innerHTML=`<div class="sh">${h}</div>`;$('#md').classList.add('on')}
+function cl(){$('#md').classList.remove('on')}
+const seg=(n,o,v,fn='pick')=>`<div class="sg" id="s_${n}">${Object.entries(o).map(([k,l])=>`<button type="button" data-v="${k}" class="${k==v?'on':''}" onclick="${fn}('${n}','${k}')">${l}</button>`).join('')}</div>`;
+const MH={expense:'Plaćeno',income:'Primljeno',sin:'Uzima se iz',sout:'Vraća se na'};
+function pick(n,v){F[n]=v;document.querySelectorAll('#s_'+n+' button').forEach(b=>b.classList.toggle('on',b.dataset.v==v));if(n=='type'){$('#fc').style.display=v=='expense'?'':'none';$('#mh').textContent=MH[v]}}
+function menu(){const th=localStorage.getItem('pot_theme')||'auto';open_(`<div class="row"><b style="font-size:18px;font-weight:800">Meni</b><button class="lk" onclick="cl()">Zatvori</button></div>
+ <label>Tema</label>${seg('theme',{auto:'🌓 Auto',light:'☀️ Svetla',dark:'🌙 Tamna'},th,'setTheme')}
+ <label>Podaci</label><div class="g2"><button class="btn" onclick="exp()">⬆️ Export CSV</button><button class="btn" onclick="share(JSON.stringify(S),'potrosnja-backup.json','application/json')">💾 Rezervna kopija</button></div>
+ <button class="btn" style="width:100%" onclick="$('#imp').click()">⬇️ Vrati iz rezervne kopije</button>`)}
+function setTheme(n,v){localStorage.setItem('pot_theme',v);applyTheme();document.querySelectorAll('#s_theme button').forEach(b=>b.classList.toggle('on',b.dataset.v==v))}
+function opts(sel){return `<option value="">Bez kategorije</option>`+S.cats.map(c=>`<option value="${c.id}" ${c.id==sel?'selected':''}>${c.icon} ${esc(c.name)}</option>`).join('')}
+function openForm(id,ty){
+ const t=id?S.tx.find(x=>x.id==id):null;
+ F=t?{...t,now:false}:{type:ty||'expense',method:'card',cat:'',ts:Date.now(),now:true,note:'',amount:''};
+ open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">${t?'Izmena':'Nova transakcija'}</b><button class="lk" onclick="sv('${id||''}')">Sačuvaj</button></div>
+ ${seg('type',T,F.type)}
+ <label>Iznos</label><input id="fa" inputmode="decimal" placeholder="0" value="${F.amount}">
+ <label id="mh">${MH[F.type]}</label>${seg('method',M,F.method)}
+ <div id="fc" style="${F.type=='expense'?'':'display:none'}"><label>Kategorija</label><div class="row"><select id="fk">${opts(F.cat)}</select><button class="btn" style="white-space:nowrap" onclick="quickCat()">+ Nova</button></div></div>
+ <label>Napomena</label><input id="fn" placeholder="npr. doručak" value="${esc(F.note)}">
+ <label style="text-transform:none;letter-spacing:0;font-size:15px;color:var(--tx)"><input type="checkbox" id="fnow" ${F.now?'checked':''} onchange="$('#fd').style.display=this.checked?'none':''">Upravo sad</label>
+ <input type="datetime-local" id="fd" value="${loc(F.ts)}" style="${F.now?'display:none':''}">
+ ${t?`<button class="btn dl" onclick="del('${id}')">Obriši transakciju</button>`:''}`)}
+function quickCat(){const n=(prompt('Naziv nove kategorije:')||'').trim();if(!n)return;const c={id:'c'+Date.now(),name:n,icon:'🏷️',color:PAL[S.cats.length%PAL.length]};S.cats.push(c);save();$('#fk').innerHTML=opts(c.id)}
+function sv(id){
+ const a=parseFloat(($('#fa').value||'').replace(',','.'));if(!(a>0))return alert('Unesi iznos');
+ const o={type:F.type,amount:a,method:F.method,cat:F.type=='expense'?$('#fk').value:'',note:$('#fn').value.trim(),ts:$('#fnow').checked?Date.now():(new Date($('#fd').value).getTime()||Date.now())};
+ if(id)Object.assign(S.tx.find(x=>x.id==id),o);else S.tx.push({id:'t'+Date.now(),...o});
+ save();cl();render()}
+function del(id){if(confirm('Obrisati transakciju?')){S.tx=S.tx.filter(x=>x.id!=id);save();cl();render()}}
+function catForm(){open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">Nova kategorija</b><button class="lk" onclick="addCat()">Sačuvaj</button></div><label>Naziv</label><input id="cn" placeholder="npr. Kućni ljubimci"><label>Ikonica (emoji)</label><input id="ci" value="🏷️"><label>Boja</label><input id="cc" type="color" value="#0a84ff">`)}
+function addCat(){const n=$('#cn').value.trim();if(!n)return;S.cats.push({id:'c'+Date.now(),name:n,icon:$('#ci').value||'🏷️',color:$('#cc').value});save();cl();render()}
+function delCat(id){const c=cat(id);if(confirm(`Obrisati kategoriju "${c.name}"? Njene transakcije ostaju kao "Bez kategorije".`)){S.cats=S.cats.filter(x=>x.id!=id);S.tx.forEach(t=>{if(t.cat==id)t.cat=''});save();render()}}
+
+async function share(txt,name,type){
+ const f=new File([(type=='text/csv'?'\ufeff':'')+txt],name,{type});
+ try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name=='AbortError')return}
+ const a=document.createElement('a');a.href=URL.createObjectURL(f);a.download=name;a.click()}
+function exp(){
+ const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
+ const r=[['Datum','Mesec','Tip','Iznos','Nacin','Kategorija','Napomena']].concat([...S.tx].sort((a,b)=>a.ts-b.ts).map(t=>[loc(t.ts).replace('T',' '),loc(t.ts).slice(0,7),T[t.type],t.amount.toFixed(2),ML[t.method],(cat(t.cat)||{}).name||'',t.note]));
+ share(r.map(x=>x.map(q).join(',')).join('\n'),'potrosnja.csv','text/csv')}
+function imp(i){const f=i.files[0];if(!f)return;f.text().then(x=>{try{const d=JSON.parse(x.replace(/^\ufeff/,''));if(!d.cats||!d.tx)throw 0;if(confirm('Zameniti sve trenutne podatke podacima iz fajla?')){S=d;save();cl();render()}}catch(e){alert('Neispravan fajl')}i.value=''})}
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+render();
+</script></body></html>
