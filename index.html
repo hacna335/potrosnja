@@ -140,7 +140,8 @@ const sav=()=>S.tx.reduce((a,t)=>a+(t.type=='sin'?t.amount:t.type=='sout'?-t.amo
 const cur=a=>a=='sav'?sav():bal(a);
 const msw=()=>`<div class="card ms"><button onclick="shift(-1)">‹</button><b>${MN[mo.getMonth()]} ${mo.getFullYear()}</b><button onclick="shift(1)">›</button></div>`;
 function shift(n){mo=new Date(mo.getFullYear(),mo.getMonth()+n,1);render()}
-function go(t){tab=t;render();scrollTo(0,0)}
+let catView=null;
+function go(t){tab=t;catView=null;render();scrollTo(0,0)}
 function render(){$('#v').innerHTML=({home:vHome,list:vList,sav:vSav,cats:vCats})[tab]();document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==tab))}
 const s3=(l,v,c,ic)=>`<div class="tc ${c}"><small>${ic} ${l}</small><b>${nf(v)}</b><small>RSD</small></div>`;
 
@@ -188,9 +189,22 @@ function vSav(){
  <div class="card"><div class="ct" style="margin:0">Istorija</div>${a.length?a.map(t=>row(t,1)).join(''):'<p class="emp">Još nema uplata.</p>'}</div>`}
 
 function vCats(){
+ if(catView)return vCatDetail();
  const n=c=>S.tx.filter(t=>t.cat==c.id).length;
- return `<div class="card"><div class="ct" style="margin:0">Kategorije</div><small>Tapni na kategoriju da je obrišeš</small>${S.cats.map(c=>`<div class="it" onclick="delCat('${c.id}')"><span class="ic" style="background:${c.color}2e">${c.icon}</span><div class="gr"><div>${esc(c.name)}</div></div><small>${n(c)} stavki</small></div>`).join('')}
+ return `<div class="card"><div class="ct" style="margin:0">Kategorije</div><small>Tapni na kategoriju da vidiš njene transakcije</small>${S.cats.map(c=>`<div class="it" onclick="openCat('${c.id}')"><span class="ic" style="background:${c.color}2e">${c.icon}</span><div class="gr"><div>${esc(c.name)}</div></div><small>${n(c)} stavki</small><span style="color:var(--mut);font-size:18px">›</span><button class="lk" onclick="event.stopPropagation();delCat('${c.id}')">🗑</button></div>`).join('')}
  <button class="btn pr" style="width:100%;margin-top:16px" onclick="catForm()">+ Nova kategorija</button></div>`}
+function openCat(id){catView=id;render();scrollTo(0,0)}
+function catBack(){catView=null;render();scrollTo(0,0)}
+function vCatDetail(){
+ const c=cat(catView);if(!c){catView=null;return vCats()}
+ const m=S.tx.filter(t=>t.cat==c.id).sort((a,b)=>b.ts-a.ts),tot=sum(m),mm=sum(m.filter(t=>inMo(t)));
+ let h=`<div class="row" style="padding:12px 2px 0"><button class="lk" onclick="catBack()" style="padding-left:0">‹ Kategorije</button><button class="lk" onclick="delCat('${c.id}')">🗑 Obriši</button></div>
+ <div class="card"><div class="row" style="justify-content:flex-start;gap:12px"><span class="ic" style="width:46px;height:46px;font-size:22px;background:${c.color}2e">${c.icon}</span><div><div style="font-size:18px;font-weight:800">${esc(c.name)}</div><small>${m.length} transakcija</small></div></div>
+ <div class="g2" style="margin:14px 0 0"><div class="tc" style="--c:${c.color}"><small>Ukupno</small><b>${nf(tot)}</b><small>RSD</small></div><div class="tc" style="--c:${c.color}"><small>${MN[mo.getMonth()]} ${mo.getFullYear()}</small><b>${nf(mm)}</b><small>RSD</small></div></div></div>`;
+ if(!m.length)return h+'<div class="card"><p class="emp">Nema transakcija u ovoj kategoriji.</p></div>';
+ const gr={};m.forEach(t=>{(gr[new Date(t.ts).toDateString()]??=[]).push(t)});
+ Object.values(gr).forEach(a=>{const d=new Date(a[0].ts);h+=`<div class="card"><div class="ct" style="margin:0">${d.getDate()}. ${MN[d.getMonth()]} ${d.getFullYear()}</div>${a.map(t=>row(t)).join('')}</div>`});
+ return h}
 
 function open_(h){$('#md').innerHTML=`<div class="sh">${h}</div>`;$('#md').classList.add('on')}
 function cl(){$('#md').classList.remove('on')}
@@ -224,7 +238,7 @@ function sv(id){
 function del(id){if(confirm('Obrisati transakciju?')){S.tx=S.tx.filter(x=>x.id!=id);save();cl();render()}}
 function catForm(){open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">Nova kategorija</b><button class="lk" onclick="addCat()">Sačuvaj</button></div><label>Naziv</label><input id="cn" placeholder="npr. Kućni ljubimci"><label>Ikonica (emoji)</label><input id="ci" value="🏷️"><label>Boja</label><input id="cc" type="color" value="#0a84ff">`)}
 function addCat(){const n=$('#cn').value.trim();if(!n)return;S.cats.push({id:'c'+Date.now(),name:n,icon:$('#ci').value||'🏷️',color:$('#cc').value});save();cl();render()}
-function delCat(id){const c=cat(id);if(confirm(`Obrisati kategoriju "${c.name}"? Njene transakcije ostaju kao "Bez kategorije".`)){S.cats=S.cats.filter(x=>x.id!=id);S.tx.forEach(t=>{if(t.cat==id)t.cat=''});save();render()}}
+function delCat(id){const c=cat(id);ask('Da li si siguran?',`Obrisati kategoriju „${esc(c.name)}“? Njene transakcije ostaju kao „Bez kategorije“.`,'Da, obriši',()=>{S.cats=S.cats.filter(x=>x.id!=id);S.tx.forEach(t=>{if(t.cat==id)t.cat=''});if(catView==id)catView=null;save();render()},1)}
 
 function fixCat(){let c=S.cats.find(x=>x.id=='cfix');if(!c){c={id:'cfix',name:FIXN,icon:'❓',color:'#d946a8'};S.cats.push(c)}return c.id}
 function balForm(){open_(`<div class="row"><button class="lk" onclick="cl()">Otkaži</button><b style="font-weight:800">Trenutno stanje</b><button class="lk" onclick="saveBal()">Sačuvaj</button></div>
