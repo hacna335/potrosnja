@@ -81,6 +81,7 @@ input[type=color]{height:40px;padding:4px}
 .cfb b{font-size:18px;font-weight:800}
 .cfb p{color:var(--mut);margin:8px 0 16px}
 .btn.dg{background:var(--r);color:#fff;border-color:transparent}
+input:disabled{opacity:.4}
 .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--mut);background:none;color:#fff;font-size:15px;padding:0;flex:none;line-height:1}
 .ck.on{background:var(--g);border-color:var(--g)}
 .ch{display:block;width:100%;text-align:left;margin-top:8px}
@@ -299,13 +300,18 @@ function saveFuel(){
 function delFuel(id){const f=S.fuel.find(x=>x.id==id);ask('Da li si siguran?',`Obrisati sipanje od ${fmt(f.amount)} (${dt(f.ts)})? Biće obrisana i povezana potrošnja u kategoriji Gorivo.`,'Da, obriši',()=>{S.tx=S.tx.filter(x=>x.id!=f.tid);S.fuel=S.fuel.filter(x=>x.id!=id);save();render();fuelForm()},1)}
 
 // ---- To buy lista
+const noP=n=>{const a=n%10,b=n%100;return n+(a==1&&b!=11?' artikal nema':a>=2&&a<=4&&(b<12||b>14)?' artikla nemaju':' artikala nemaju')+' cenu'};
 function wishForm(){
- const W=[...S.wish].sort((a,b)=>a.done-b.done||b.ts-a.ts),tot=W.reduce((a,w)=>a+w.price,0),left=W.filter(w=>!w.done).reduce((a,w)=>a+w.price,0);
+ const W=[...S.wish].sort((a,b)=>a.done-b.done||b.ts-a.ts),pr=w=>w.price||0,tot=W.reduce((a,w)=>a+pr(w),0),left=W.filter(w=>!w.done).reduce((a,w)=>a+pr(w),0),np=W.filter(w=>w.price==null).length;
  open_(`<div class="row"><b style="font-size:18px;font-weight:800">🛒 To buy</b><button class="lk" onclick="cl()">Zatvori</button></div>
- <div class="card" style="text-align:center"><div class="ct">Ukupna cena svih stavki</div><div style="font-size:26px;font-weight:800">${fmt(tot)}</div><small>Kupljeno: ${fmt(tot-left)} • Preostalo: ${fmt(left)}</small></div>
- <div class="card"><div class="ct">Nova stavka</div><input id="wn" placeholder="Naziv predmeta" style="margin-bottom:8px"><input id="wp" inputmode="decimal" placeholder="Cena (RSD)"><button class="btn pr" style="width:100%;margin-top:10px" onclick="addWish()">+ Dodaj na listu</button></div>
- ${W.length?W.map(w=>`<div class="it"><button class="ck${w.done?' on':''}" onclick="toggleWish('${w.id}')">${w.done?'✓':''}</button><div class="gr"><div style="${w.done?'text-decoration:line-through;opacity:.55':''}">${esc(w.name)}</div></div><b style="${w.done?'opacity:.55':''}">${fmt(w.price)}</b><button class="lk" onclick="delWish('${w.id}')">🗑</button></div>`).join(''):'<p class="emp">Lista je prazna.</p>'}`)}
-function addWish(){const n=$('#wn').value.trim(),p=num($('#wp').value);if(!n||!(p>0))return alert('Unesi naziv i cenu');S.wish.push({id:uid('w'),name:n,price:p,done:false,ts:Date.now()});save();wishForm()}
+ <div class="card" style="text-align:center"><div class="ct">Ukupna cena svih stavki</div><div style="font-size:26px;font-weight:800">${fmt(tot)}</div><small>Kupljeno: ${fmt(tot-left)} • Preostalo: ${fmt(left)}</small>${np?`<div style="margin-top:10px;color:var(--o);font-weight:800;font-size:13px">⚠️ ${noP(np)}</div><small>Nisu uračunati u ukupnu cenu</small>`:''}</div>
+ <div class="card"><div class="ct">Nova stavka</div><input id="wn" placeholder="Naziv predmeta" style="margin-bottom:8px">
+ <div class="row"><input id="wp" inputmode="decimal" placeholder="Cena (RSD)" style="flex:1"><label style="display:flex;align-items:center;white-space:nowrap;margin:0;font-size:14px;text-transform:none;letter-spacing:0;color:var(--tx)"><input type="checkbox" id="wnp" onchange="$('#wp').disabled=this.checked;if(this.checked)$('#wp').value=''">Bez cene</label></div>
+ <button class="btn pr" style="width:100%;margin-top:10px" onclick="addWish()">+ Dodaj na listu</button></div>
+ ${W.length?`<small style="display:block;margin:0 4px 4px">Tapni na cenu da je upišeš ili promeniš</small>`+W.map(w=>`<div class="it"><button class="ck${w.done?' on':''}" onclick="toggleWish('${w.id}')">${w.done?'✓':''}</button><div class="gr"><div style="${w.done?'text-decoration:line-through;opacity:.55':''}">${esc(w.name)}</div></div>${w.price==null?`<span class="pill co" style="margin:0" onclick="editPrice('${w.id}')">bez cene</span>`:`<b style="${w.done?'opacity:.55':''}" onclick="editPrice('${w.id}')">${fmt(w.price)}</b>`}<button class="lk" onclick="delWish('${w.id}')">🗑</button></div>`).join(''):'<p class="emp">Lista je prazna.</p>'}`)}
+function addWish(){const n=$('#wn').value.trim(),np=$('#wnp').checked,p=num($('#wp').value);if(!n)return alert('Unesi naziv');if(!np&&!(p>0))return alert('Unesi cenu ili štikliraj „Bez cene“');S.wish.push({id:uid('w'),name:n,price:np?null:p,done:false,ts:Date.now()});save();wishForm()}
+function editPrice(id){const w=S.wish.find(x=>x.id==id);$('#cf').innerHTML=`<div class="cfb"><b>Cena: ${esc(w.name)}</b><p>Upiši cenu ili ostavi prazno da stavka ostane bez cene.</p><input id="wpe" inputmode="decimal" placeholder="Cena (RSD)" value="${w.price==null?'':w.price}"><div class="g2" style="margin:14px 0 0"><button class="btn" onclick="cfNo()">Otkaži</button><button class="btn pr" onclick="savePrice('${id}')">Sačuvaj</button></div></div>`;$('#cf').classList.add('on')}
+function savePrice(id){const w=S.wish.find(x=>x.id==id),r=$('#wpe').value.trim(),p=num(r);if(r&&!(p>0))return alert('Unesi ispravnu cenu');w.price=r?p:null;cfNo();save();wishForm()}
 function toggleWish(id){const w=S.wish.find(x=>x.id==id);ask('Da li si siguran?',w.done?`Vratiti „${esc(w.name)}“ među nekupljene?`:`Označiti „${esc(w.name)}“ kao kupljeno? Ovo ne skida novac sa kartice ni iz keša.`,w.done?'Da, vrati':'Da, kupljeno',()=>{w.done=!w.done;save();wishForm()})}
 function delWish(id){const w=S.wish.find(x=>x.id==id);ask('Da li si siguran?',`Obrisati „${esc(w.name)}“ sa liste?`,'Da, obriši',()=>{S.wish=S.wish.filter(x=>x.id!=id);save();wishForm()},1)}
 
