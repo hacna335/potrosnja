@@ -75,6 +75,14 @@ input[type=color]{height:40px;padding:4px}
 .sg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:2px;margin:6px 0}
 .sg button{flex:1;border:0;background:none;color:var(--tx);padding:7px 2px;border-radius:10px;font-size:12px;font-weight:600}
 .sg .on{background:var(--brand);color:#fff;font-weight:800}
+#cf{position:fixed;inset:0;background:#000a;display:none;align-items:center;justify-content:center;z-index:20;padding:24px}
+#cf.on{display:flex}
+.cfb{background:var(--card);border-radius:22px;padding:20px;max-width:340px;width:100%}
+.cfb b{font-size:18px;font-weight:800}
+.cfb p{color:var(--mut);margin:8px 0 16px}
+.btn.dg{background:var(--r);color:#fff;border-color:transparent}
+.ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--mut);background:none;color:#fff;font-size:15px;padding:0;flex:none;line-height:1}
+.ck.on{background:var(--g);border-color:var(--g)}
 .ch{display:block;width:100%;text-align:left;margin-top:8px}
 .ch small{display:block;font-weight:500;margin-top:2px}
 </style></head><body>
@@ -92,6 +100,7 @@ input[type=color]{height:40px;padding:4px}
 <button data-t="cats" onclick="go('cats')"><span>🗂️</span>Kategorije</button>
 </nav>
 <div id="md" onclick="if(event.target==this)cl()"></div>
+<div id="cf"></div>
 <input type="file" id="imp" accept=".json" hidden onchange="imp(this)">
 <script>
 const DEF=[["Hrana","🍔","#34c759"],["Restorani i kafići","☕","#ff9500"],["Elektronika","💻","#5856d6"],["Gorivo","⛽","#ff3b30"],["Auto popravke","🔧","#8e8e93"],["Računi","🧾","#007aff"],["Zabava","🎬","#af52de"],["Zdravlje","💊","#ff2d55"],["Odeća","👕","#5ac8fa"],["Putovanja","✈️","#00c7be"],["Ostalo","📦","#a2845e"]].map((c,i)=>({id:'c'+i,name:c[0],icon:c[1],color:c[2]}));
@@ -106,7 +115,7 @@ const FIXN='Zaboravio da upišem';
 const num=v=>parseFloat(String(v).replace(',','.'));
 const PAL=['#0a84ff','#ff9f0a','#30b455','#af52de','#ff453a','#5ac8fa'];
 let S;try{S=JSON.parse(localStorage.getItem('pot'))}catch(e){}
-S=S||{cats:DEF,tx:[]};
+S=S||{cats:DEF,tx:[]};S.fuel=S.fuel||[];S.wish=S.wish||[];
 const save=()=>localStorage.setItem('pot',JSON.stringify(S));
 const $=s=>document.querySelector(s);
 const nf=n=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:2}).format(n);
@@ -145,7 +154,7 @@ function vHome(){
  const arcs=rows.map(r=>{const p=r.v/tot*100,d=Math.max(p-.6,0);const s=`<circle r="15.9155" cx="21" cy="21" fill="none" stroke="${r.color}" stroke-width="5" stroke-dasharray="${d} ${100-d}" stroke-dashoffset="${25-cum}"/>`;cum+=p;return s}).join('');
  const bars=[5,4,3,2,1,0].map(i=>{const d=new Date(mo.getFullYear(),mo.getMonth()-i,1),x=S.tx.filter(t=>inMo(t,d)&&t.method!='sav');return{l:MN[d.getMonth()].slice(0,3),i:sum(x.filter(t=>t.type=='income')),e:sum(x.filter(t=>t.type=='expense'))}});
  const mx=Math.max(1,...bars.flatMap(b=>[b.i,b.e]));
- return `<div class="card"><div class="ct">Trenutno stanje</div><div class="g3">${s3('Kartica',bal('card'),'cb','💳')}${s3('Keš',bal('cash'),'cg','💵')}${s3('Štednja',sav(),'cp','🏦')}</div><div class="g2" style="margin:10px 0 0"><button class="btn" onclick="xferForm()">🔁 Transfer</button><button class="btn" onclick="balForm()">🎯 Uskladi stanje</button></div></div>
+ return `<div class="card"><div class="ct">Trenutno stanje</div><div class="g3">${s3('Kartica',bal('card'),'cb','💳')}${s3('Keš',bal('cash'),'cg','💵')}${s3('Štednja',sav(),'cp','🏦')}</div><div class="g2" style="margin:10px 0 0"><button class="btn" onclick="xferForm()">🔁 Transfer</button><button class="btn" onclick="balForm()">🎯 Uskladi stanje</button></div><div class="g2" style="margin:8px 0 0"><button class="btn" onclick="fuelForm()">⛽ Gorivo</button><button class="btn" onclick="wishForm()">🛒 To buy</button></div></div>
  ${msw()}
  <div class="card"><div class="ct">Ovaj mesec</div>
  <div class="bar cg"><span>⬇️ Prihod</span><span>${fmt(inc)}</span></div>
@@ -246,6 +255,60 @@ function saveX(id){const a=num($('#fa').value);if(!(a>0))return alert('Unesi izn
  if(id)Object.assign(S.tx.find(x=>x.id==id),o);else S.tx.push({id:'t'+Date.now(),...o});
  save();cl();render()}
 
+const uid=p=>p+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const n1=n=>new Intl.NumberFormat('de-DE',{maximumFractionDigits:1}).format(n);
+let cfFn;
+function ask(t,m,y,fn,dg){cfFn=fn;$('#cf').innerHTML=`<div class="cfb"><b>${t}</b><p>${m}</p><div class="g2" style="margin:0"><button class="btn" onclick="cfNo()">Otkaži</button><button class="btn ${dg?'dg':'pr'}" onclick="cfYes()">${y}</button></div></div>`;$('#cf').classList.add('on')}
+function cfNo(){$('#cf').classList.remove('on');cfFn=null}
+function cfYes(){const f=cfFn;cfNo();if(f)f()}
+
+// ---- Gorivo
+function fuelCat(){let c=S.cats.find(x=>x.name.trim().toLowerCase()=='gorivo');if(!c){c={id:'cfuel',name:'Gorivo',icon:'⛽',color:'#ff3b30'};S.cats.push(c)}return c.id}
+function fuelList(){return [...S.fuel].sort((a,b)=>a.ts-b.ts).map((f,i,a)=>{const p=a[i-1],dk=p?f.km-p.km:0;return{...f,dk,cons:p&&dk>0?f.liters/dk*100:null,ppl:f.amount/f.liters}})}
+const prevOf=ts=>[...S.fuel].filter(f=>f.ts<ts).sort((a,b)=>b.ts-a.ts)[0];
+function fuelForm(){
+ F={method:'card',now:true,ts:Date.now()};
+ const L=fuelList(),cs=L.filter(x=>x.cons!=null),tl=cs.reduce((a,x)=>a+x.liters,0),tk=cs.reduce((a,x)=>a+x.dk,0),last=L[L.length-1];
+ const t3=(l,v,u,c)=>`<div class="tc ${c}"><small>${l}</small><b>${v}</b><small>${u}</small></div>`;
+ open_(`<div class="row"><b style="font-size:18px;font-weight:800">⛽ Gorivo</b><button class="lk" onclick="cl()">Zatvori</button></div>
+ <div class="g3" style="margin-top:12px">${t3('Prosek',tk?n1(tl/tk*100):'—','L/100 km','cb')}${t3('Poslednje',cs.length?n1(cs[cs.length-1].cons):'—','L/100 km','co')}${t3('Cena goriva',last?nf(last.ppl):'—','RSD/L','cg')}</div>
+ <div class="card"><div class="ct">Novo sipanje</div>
+ <label>Plaćeno (RSD)</label><input id="gm" inputmode="decimal" placeholder="0" oninput="fuelHint()">
+ <label>Sipano litara</label><input id="gl" inputmode="decimal" placeholder="0" oninput="fuelHint()">
+ <label>Kilometraža na satu <span style="text-transform:none;letter-spacing:0;font-weight:600">(prethodna: ${last?nf(last.km)+' km':'nema'})</span></label><input id="gk" inputmode="decimal" placeholder="${last?nf(last.km):'0'}" oninput="fuelHint()">
+ <small id="gh" style="display:block;margin:6px 4px 0;min-height:16px"></small>
+ <label>Plaćeno sa</label>${seg('method',M,F.method)}
+ <label>Vreme</label>${tb()}
+ <button class="btn pr" style="width:100%;margin-top:14px" onclick="saveFuel()">Sačuvaj sipanje</button></div>
+ <div class="ct" style="margin:16px 4px 0">Istorija</div>
+ ${L.length?[...L].reverse().map(f=>`<div class="it"><span class="ic" style="background:#ff3b302e">⛽</span><div class="gr"><div>${fmt(f.amount)}</div><small>${dt(f.ts)}<br>${nf(f.liters)} L • ${nf(f.km)} km • ${nf(f.ppl)} RSD/L</small></div><div style="text-align:right">${f.cons!=null?`<b>${n1(f.cons)}</b><br><small>L/100 km</small>`:'<small>početna<br>tačka</small>'}</div><button class="lk" onclick="delFuel('${f.id}')">🗑</button></div>`).join(''):'<p class="emp">Još nema sipanja.</p>'}`)}
+function fuelHint(){
+ const a=num($('#gm').value),l=num($('#gl').value),k=num($('#gk').value),p=prevOf(gts()),h=[];
+ if(a>0&&l>0)h.push('Cena: '+nf(a/l)+' RSD/L');
+ if(k>=0){if(!p)h.push('Prvi unos: kilometraža se čuva kao početna tačka');else if(k>p.km){h.push('Pređeno: '+nf(k-p.km)+' km');if(l>0)h.push('Potrošnja: '+n1(l/(k-p.km)*100)+' L/100 km')}else h.push('Kilometraža mora biti veća od prethodne ('+nf(p.km)+' km)')}
+ $('#gh').textContent=h.join(' • ')}
+function saveFuel(){
+ const a=num($('#gm').value),l=num($('#gl').value),k=num($('#gk').value);
+ if(!(a>0)||!(l>0)||!(k>=0))return alert('Unesi iznos, litre i kilometražu');
+ const ts=gts(),pr=prevOf(ts);
+ if(pr&&k<=pr.km)return alert('Kilometraža mora biti veća od prethodne ('+nf(pr.km)+' km)');
+ const id=uid('f'),tid=uid('t');
+ S.tx.push({id:tid,type:'expense',amount:a,method:F.method,cat:fuelCat(),note:'⛽ '+nf(l)+' L • '+nf(k)+' km',ts});
+ S.fuel.push({id,ts,amount:a,liters:l,km:k,method:F.method,tid});
+ save();render();fuelForm()}
+function delFuel(id){const f=S.fuel.find(x=>x.id==id);ask('Da li si siguran?',`Obrisati sipanje od ${fmt(f.amount)} (${dt(f.ts)})? Biće obrisana i povezana potrošnja u kategoriji Gorivo.`,'Da, obriši',()=>{S.tx=S.tx.filter(x=>x.id!=f.tid);S.fuel=S.fuel.filter(x=>x.id!=id);save();render();fuelForm()},1)}
+
+// ---- To buy lista
+function wishForm(){
+ const W=[...S.wish].sort((a,b)=>a.done-b.done||b.ts-a.ts),tot=W.reduce((a,w)=>a+w.price,0),left=W.filter(w=>!w.done).reduce((a,w)=>a+w.price,0);
+ open_(`<div class="row"><b style="font-size:18px;font-weight:800">🛒 To buy</b><button class="lk" onclick="cl()">Zatvori</button></div>
+ <div class="card" style="text-align:center"><div class="ct">Ukupna cena svih stavki</div><div style="font-size:26px;font-weight:800">${fmt(tot)}</div><small>Kupljeno: ${fmt(tot-left)} • Preostalo: ${fmt(left)}</small></div>
+ <div class="card"><div class="ct">Nova stavka</div><input id="wn" placeholder="Naziv predmeta" style="margin-bottom:8px"><input id="wp" inputmode="decimal" placeholder="Cena (RSD)"><button class="btn pr" style="width:100%;margin-top:10px" onclick="addWish()">+ Dodaj na listu</button></div>
+ ${W.length?W.map(w=>`<div class="it"><button class="ck${w.done?' on':''}" onclick="toggleWish('${w.id}')">${w.done?'✓':''}</button><div class="gr"><div style="${w.done?'text-decoration:line-through;opacity:.55':''}">${esc(w.name)}</div></div><b style="${w.done?'opacity:.55':''}">${fmt(w.price)}</b><button class="lk" onclick="delWish('${w.id}')">🗑</button></div>`).join(''):'<p class="emp">Lista je prazna.</p>'}`)}
+function addWish(){const n=$('#wn').value.trim(),p=num($('#wp').value);if(!n||!(p>0))return alert('Unesi naziv i cenu');S.wish.push({id:uid('w'),name:n,price:p,done:false,ts:Date.now()});save();wishForm()}
+function toggleWish(id){const w=S.wish.find(x=>x.id==id);ask('Da li si siguran?',w.done?`Vratiti „${esc(w.name)}“ među nekupljene?`:`Označiti „${esc(w.name)}“ kao kupljeno? Ovo ne skida novac sa kartice ni iz keša.`,w.done?'Da, vrati':'Da, kupljeno',()=>{w.done=!w.done;save();wishForm()})}
+function delWish(id){const w=S.wish.find(x=>x.id==id);ask('Da li si siguran?',`Obrisati „${esc(w.name)}“ sa liste?`,'Da, obriši',()=>{S.wish=S.wish.filter(x=>x.id!=id);save();wishForm()},1)}
+
 async function share(txt,name,type){
  const f=new File([(type=='text/csv'?'\ufeff':'')+txt],name,{type});
  try{if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f]});return}}catch(e){if(e.name=='AbortError')return}
@@ -254,7 +317,7 @@ function exp(){
  const q=s=>'"'+String(s).replace(/"/g,'""')+'"';
  const r=[['Datum','Mesec','Tip','Iznos','Nacin','Prema','Kategorija','Napomena']].concat([...S.tx].sort((a,b)=>a.ts-b.ts).map(t=>[loc(t.ts).replace('T',' '),loc(t.ts).slice(0,7),TN[t.type],t.amount.toFixed(2),ML[t.method],t.to?ML[t.to]:'',(cat(t.cat)||{}).name||'',t.note]));
  share(r.map(x=>x.map(q).join(',')).join('\n'),'potrosnja.csv','text/csv')}
-function imp(i){const f=i.files[0];if(!f)return;f.text().then(x=>{try{const d=JSON.parse(x.replace(/^\ufeff/,''));if(!d.cats||!d.tx)throw 0;if(confirm('Zameniti sve trenutne podatke podacima iz fajla?')){S=d;save();cl();render()}}catch(e){alert('Neispravan fajl')}i.value=''})}
+function imp(i){const f=i.files[0];if(!f)return;f.text().then(x=>{try{const d=JSON.parse(x.replace(/^\ufeff/,''));if(!d.cats||!d.tx)throw 0;d.fuel=d.fuel||[];d.wish=d.wish||[];if(confirm('Zameniti sve trenutne podatke podacima iz fajla?')){S=d;save();cl();render()}}catch(e){alert('Neispravan fajl')}i.value=''})}
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
 render();
